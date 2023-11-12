@@ -1,5 +1,7 @@
 #pragma once
 
+#include <algorithm>
+#include <fstream>
 #include <map>
 #include <stdexcept>
 #include <string>
@@ -23,8 +25,6 @@ private:
   void setArrayIfNull();
   void setObjectIfNull();
 
-  static type getType(value &data);
-
 public:
   object();
   object(value &data);
@@ -39,6 +39,8 @@ public:
   bool isString() const;
   bool isArray() const;
   bool isObject() const;
+
+  static type getType(value &data);
 
   // For arrays
   void push_back(value &data);
@@ -55,6 +57,10 @@ public:
 
   // For arrays and objects
   size_t size();
+
+  // Overall
+  std::string dump(int indent = 0, int baseline = 0);
+  void dumps(const std::string &filePath, int indent = 0);
 };
 
 } // namespace json

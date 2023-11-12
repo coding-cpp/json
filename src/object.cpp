@@ -24,6 +24,14 @@ bool json::object::isString() const { return this->_type == type::String; }
 bool json::object::isArray() const { return this->_type == type::Array; }
 bool json::object::isObject() const { return this->_type == type::Object; }
 
+void json::object::setArrayIfNull() {
+  if (this->isNull()) {
+    this->_type = type::Array;
+    this->_value = std::vector<object>();
+  }
+  return;
+}
+
 void json::object::push_back(value &data) {
   this->setArrayIfNull();
   if (!this->isArray()) {
@@ -147,13 +155,74 @@ size_t json::object::size() {
   return 0;
 }
 
-void json::object::setArrayIfNull() {
+std::string json::object::dump(int indent, int baseline) {
+  std::string result = "";
+  indent = indent < 0 ? 0 : indent;
+
   if (this->isNull()) {
-    this->_type = type::Array;
-    this->_value = std::vector<object>();
+    result += "null";
+  } else if (this->isBoolean()) {
+    result += std::get<bool>(this->_value) ? "true" : "false";
+  } else if (this->isInteger()) {
+    result += std::to_string(std::get<int>(this->_value));
+  } else if (this->isDouble()) {
+    result += std::to_string(std::get<double>(this->_value));
+  } else if (this->isString()) {
+    result += "\"" + std::get<std::string>(this->_value) + "\"";
+  } else if (this->isArray()) {
+    result += "[";
+    result += indent > 0 ? "\n" : "";
+    for (size_t i = 0; i < this->size(); i++) {
+      result += std::string(indent, ' ') +
+                std::get<std::vector<object>>(this->_value)[i].dump(indent * 2,
+                                                                    indent);
+      if (i != this->size() - 1) {
+        result += ",";
+      }
+      result += indent > 0 ? "\n" : "";
+    }
+    result += std::string(baseline, ' ') + "]";
+  } else if (this->isObject()) {
+    result += "{";
+    result += indent > 0 ? "\n" : "";
+    size_t i = 0;
+    for (std::pair<const std::string, object> &item :
+         std::get<std::map<std::string, object>>(this->_value)) {
+      result += std::string(indent, ' ') + "\"" + item.first +
+                "\": " + item.second.dump(indent * 2, indent);
+      if (i != this->size() - 1) {
+        result += ",";
+      }
+      result += indent > 0 ? "\n" : "";
+      i++;
+    }
+    result += std::string(baseline, ' ') + "}";
+  } else {
+    throw std::runtime_error("[ERROR] json::object::dump(int indent = 0) - "
+                             "Invalid type.");
   }
+
+  if (indent == 0) {
+    result.erase(std::remove_if(result.begin(), result.end(), ::isspace),
+                 result.end());
+  }
+  return result;
+}
+void json::object::dumps(const std::string &filePath, int indent) {
+  std::ofstream jsonFile(filePath);
+  if (!jsonFile.is_open()) {
+    throw std::runtime_error("[ERROR] json::object::dumps(const std::string "
+                             "&filePath, int indent = 0) - Cannot open " +
+                             filePath);
+  }
+
+  std::string _json = this->dump(indent);
+  jsonFile << _json;
+  jsonFile.close();
+
   return;
 }
+
 void json::object::setObjectIfNull() {
   if (this->isNull()) {
     this->_type = type::Object;
