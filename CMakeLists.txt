@@ -16,8 +16,7 @@ option(USE_INSTALL_RESOURCE_PATH "Set resource path to install location" OFF)
 
 add_executable(json
   ./src/object.cpp
-  # ./src/parse.cpp
-  # ./src/stringify.cpp
+  ./src/print.cpp
 
   ./example/main.cpp
 )

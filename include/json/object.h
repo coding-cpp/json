@@ -1,14 +1,13 @@
 #pragma once
 
-#include <algorithm>
 #include <fstream>
 #include <map>
 #include <stdexcept>
 #include <string>
-#include <utility>
 #include <variant>
 #include <vector>
 
+#include <json/print.h>
 #include <json/type.h>
 
 namespace json {
@@ -27,40 +26,54 @@ private:
 
 public:
   object();
+  object(bool data);
+  object(int data);
+  object(double data);
+  object(const std::string &data);
+  object(const char *data);
+  object(const std::vector<object> &data);
+  object(const std::map<std::string, object> &data);
   object(value &data);
   ~object();
 
-  void operator=(value &data);
+  void operator=(bool data);
+  void operator=(int data);
+  void operator=(double data);
+  void operator=(const std::string &data);
+  void operator=(const char *data);
+  void operator=(const std::vector<object> &data);
+  void operator=(const std::map<std::string, object> &data);
 
   bool isNull() const;
   bool isBoolean() const;
   bool isInteger() const;
-  bool isDouble() const;
+  bool isNumber() const;
   bool isString() const;
   bool isArray() const;
   bool isObject() const;
 
-  static type getType(value &data);
+  // For array
+  void push(value &data);
+  void push(value data);
+  void push(object &data);
+  value &operator[](const size_t index);
 
-  // For arrays
-  void push_back(value &data);
-  void push_back(value data);
-  void push_back(object &data);
-  value &operator[](size_t index);
-
-  // For objects
+  // For object
   void insert(const std::string &itemKey, value &itemValue);
   void insert(const std::string &itemKey, value itemValue);
   void insert(const std::string &itemKey, object &itemValue);
   bool contains(const std::string &itemKey);
   value &operator[](const std::string &itemKey);
 
-  // For arrays and objects
   size_t size();
+  type getType();
 
-  // Overall
-  std::string dump(int indent = 0, int baseline = 0);
+  std::string dump(int indent = 0, int baseIndent = -1) const;
   void dumps(const std::string &filePath, int indent = 0);
+
+  void copyTo(object &obj);
+  object copy();
+  void clear();
 };
 
 } // namespace json

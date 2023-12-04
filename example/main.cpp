@@ -1,24 +1,26 @@
-#include <iostream>
-
 #include <json/object.h>
 
 int main(int argc, char **argv) {
-  json::object person;
-  person.insert("name", "Adit");
-  person.insert("age", 20);
+  json::object obj;
+
+  obj.push("Hello");
+  obj.push("World");
+  std::cout << obj.dump(2) << std::endl;
+  std::cout << "---------------------------" << std::endl;
+
+  obj.clear();
+  obj.insert("Name", "Adit");
+  obj.insert("Gender", "Male");
+  obj.insert("Age", 20);
 
   json::object languages;
-  languages.push_back("c++");
-  languages.push_back("python");
-  languages.push_back("javascript");
-  person.insert("languages", languages);
+  languages.push("English");
+  languages.push("Hindi");
+  languages.push("French");
+  languages.push("Punjabi");
 
-  json::object socials;
-  socials.insert("github", "https://github.com/Jadit19");
-  socials.insert("instagram", "https://instagram.com/jadit_19");
-  person.insert("socials", socials);
-
-  person.dumps("../person.json", 2);
+  obj.insert("Languages", languages);
+  std::cout << obj.dump(4) << std::endl;
 
   return 0;
 }
