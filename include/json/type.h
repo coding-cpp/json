@@ -2,14 +2,25 @@
 
 namespace json {
 
-enum type {
-  Null = 0,
-  Boolean = 1,
-  Integer = 2,
-  Number = 3,
-  String = 4,
-  Array = 5,
-  Object = 6
+class type {
+private:
+  int _type;
+
+public:
+  type();
+  ~type();
+
+  static const int undefined = 0;
+  static const int null = 1;
+  static const int boolean = 2;
+  static const int integer = 3;
+  static const int number = 4;
+  static const int string = 5;
+  static const int array = 6;
+  static const int map = 7;
+
+  void set(int newType);
+  int get() const;
 };
 
 } // namespace json

@@ -1,26 +1,24 @@
+// Includes required
 #include <json/object.h>
 
+// Using namespace
+using namespace json;
+
 int main(int argc, char **argv) {
-  json::object obj;
+  object person;
+  person["age"] = 21;
+  person.insert("name", "Adit");
+  person["height"] = 186.5;
 
-  obj.push("Hello");
-  obj.push("World");
-  std::cout << obj.dump(2) << std::endl;
-  std::cout << "---------------------------" << std::endl;
+  object languages;
+  languages.push_back("German");
+  languages.push_back("English");
+  languages[0] = "Hindi";
 
-  obj.clear();
-  obj.insert("Name", "Adit");
-  obj.insert("Gender", "Male");
-  obj.insert("Age", 20);
+  person["languages"] = languages;
+  person["languages"].push_back("French");
 
-  json::object languages;
-  languages.push("English");
-  languages.push("Hindi");
-  languages.push("French");
-  languages.push("Punjabi");
+  std::cout << person << std::endl;
 
-  obj.insert("Languages", languages);
-  std::cout << obj.dump(4) << std::endl;
-
-  return 0;
+  return EXIT_SUCCESS;
 }

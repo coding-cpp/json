@@ -1,364 +1,294 @@
 #include <json/object.h>
 
-json::object::object() : _type(type::Null), _value(nullptr) { return; }
-json::object::object(bool data) : _type(type::Boolean), _value(data) { return; }
-json::object::object(int data) : _type(type::Integer), _value(data) { return; }
-json::object::object(double data) : _type(type::Number), _value(data) {
+json::object::object()
+    : _value(nullptr), _map(std::map<std::string, object>()),
+      _array(std::vector<object>()), _type(type()) {
   return;
 }
-json::object::object(const std::string &data)
-    : _type(type::String), _value(data) {
-  return;
-}
-json::object::object(const char *data)
-    : _type(type::String), _value(std::string(data)) {
-  return;
-}
-json::object::object(const std::vector<object> &data)
-    : _type(type::Array), _value(data) {
-  return;
-}
-json::object::object(const std::map<std::string, object> &data)
-    : _type(type::Object), _value(data) {
-  return;
-}
-json::object::object(value &data) {
-  if (std::holds_alternative<std::nullptr_t>(data)) {
-    this->_type = type::Null;
-    this->_value = nullptr;
-  } else if (std::holds_alternative<bool>(data)) {
-    this->_type = type::Boolean;
-    this->_value = std::get<bool>(data);
-  } else if (std::holds_alternative<int>(data)) {
-    this->_type = type::Integer;
-    this->_value = std::get<int>(data);
-  } else if (std::holds_alternative<double>(data)) {
-    this->_type = type::Number;
-    this->_value = std::get<double>(data);
-  } else if (std::holds_alternative<std::string>(data)) {
-    this->_type = type::String;
-    this->_value = std::get<std::string>(data);
-  } else if (std::holds_alternative<std::vector<object>>(data)) {
-    this->_type = type::Array;
-    this->_value = std::get<std::vector<object>>(data);
-  } else if (std::holds_alternative<std::map<std::string, object>>(data)) {
-    this->_type = type::Object;
-    this->_value = std::get<std::map<std::string, object>>(data);
-  } else {
-    print::error("Unknown type!", "json::object::object(value &data)");
-  }
-
+json::object::object(all_values data) {
+  if (data.index() == 0)
+    *this = std::get<std::nullptr_t>(data);
+  else if (data.index() == 1)
+    *this = std::get<bool>(data);
+  else if (data.index() == 2)
+    *this = std::get<int>(data);
+  else if (data.index() == 3)
+    *this = std::get<double>(data);
+  else if (data.index() == 4)
+    *this = std::get<std::string>(data).c_str();
+  else if (data.index() == 5)
+    *this = std::get<std::vector<object>>(data);
+  else if (data.index() == 6)
+    *this = std::get<std::map<std::string, object>>(data);
+  else
+    throw std::runtime_error("Invalid data type passed!");
   return;
 }
 json::object::~object() { return; }
 
-void json::object::operator=(bool data) {
-  this->_type = type::Boolean;
+// Equal to operators ---------------------------------
+
+json::object &json::object::operator=(std::nullptr_t data) {
   this->_value = data;
-
-  return;
+  this->_type.set(type::null);
+  this->clearArray();
+  this->clearMap();
+  return *this;
 }
-void json::object::operator=(int data) {
-  this->_type = type::Integer;
+json::object &json::object::operator=(bool data) {
   this->_value = data;
-
-  return;
+  this->_type.set(type::boolean);
+  this->clearArray();
+  this->clearMap();
+  return *this;
 }
-void json::object::operator=(double data) {
-  this->_type = type::Number;
+json::object &json::object::operator=(int data) {
   this->_value = data;
-
-  return;
+  this->_type.set(type::integer);
+  this->clearArray();
+  this->clearMap();
+  return *this;
 }
-void json::object::operator=(const std::string &data) {
-  this->_type = type::String;
+json::object &json::object::operator=(double data) {
   this->_value = data;
-
-  return;
+  this->_type.set(type::number);
+  this->clearArray();
+  this->clearMap();
+  return *this;
 }
-void json::object::operator=(const char *data) {
-  this->_type = type::String;
-  this->_value = std::string(data);
-
-  return;
-}
-void json::object::operator=(const std::vector<object> &data) {
-  this->_type = type::Array;
+json::object &json::object::operator=(const char *data) {
   this->_value = data;
+  this->_type.set(type::string);
+  this->clearArray();
+  this->clearMap();
+  return *this;
+}
+json::object &json::object::operator=(std::vector<object> data) {
+  this->_array = data;
+  this->_type.set(type::array);
+  this->clearVariant();
+  this->clearMap();
+  return *this;
+}
+json::object &json::object::operator=(std::map<std::string, object> data) {
+  this->_map = data;
+  this->_type.set(type::map);
+  this->clearVariant();
+  this->clearMap();
+  return *this;
+}
 
+// Array operators ------------------------------------
+
+json::object &json::object::operator[](const size_t index) {
+  this->assertIsArray();
+
+  if (index >= this->_array.size()) {
+    throw std::out_of_range("Index out of range");
+  }
+
+  return this->_array[index];
+}
+const json::object &json::object::operator[](const size_t index) const {
+  if (!this->_type.get() == type::array) {
+    throw std::runtime_error("This object is not an array");
+  }
+
+  if (index >= this->_array.size()) {
+    throw std::out_of_range("Index out of range");
+  }
+
+  return this->_array.at(index);
+}
+void json::object::push_back(all_values data) {
+  this->assertIsArray();
+
+  object *newObject = new object(data);
+  this->_array.push_back(*newObject);
   return;
 }
-void json::object::operator=(const std::map<std::string, object> &data) {
-  this->_type = type::Object;
-  this->_value = data;
 
+// Map operators --------------------------------------
+
+json::object &json::object::operator[](const std::string &key) {
+
+  if (!this->_type.get() == type::map) {
+    throw std::runtime_error("This object is not an object");
+  }
+
+  this->_type.set(type::map);
+  return this->_map[key];
+}
+const json::object &json::object::operator[](const std::string &key) const {
+  if (this->_type.get() != type::map) {
+    throw std::runtime_error("This object is not an object");
+  }
+
+  return this->_map.at(key);
+}
+void json::object::insert(const std::string key, all_values data) {
+  this->assertIsMap();
+
+  object *newObject = new object(data);
+  this->_map[key] = *newObject;
   return;
 }
 
-bool json::object::isNull() const { return this->_type == type::Null; }
-bool json::object::isInteger() const { return this->_type == type::Integer; }
-bool json::object::isBoolean() const { return this->_type == type::Boolean; }
-bool json::object::isNumber() const { return this->_type == type::Number; }
-bool json::object::isString() const { return this->_type == type::String; }
-bool json::object::isArray() const { return this->_type == type::Array; }
-bool json::object::isObject() const { return this->_type == type::Object; }
-
-void json::object::push(value &data) {
-  this->setArrayIfNull();
-  if (!this->isArray()) {
-    print::error("Unable to push data to non-array object!",
-                 "void json::object::push(value &data)");
-  }
-
-  std::get<std::vector<object>>(this->_value).push_back(object(data));
-  return;
-}
-void json::object::push(value data) {
-  this->setArrayIfNull();
-  if (!this->isArray()) {
-    print::error("Unable to push data to non-array object!",
-                 "void json::object::push(value data)");
-  }
-
-  std::get<std::vector<object>>(this->_value).push_back(object(data));
-  return;
-}
-void json::object::push(object &data) {
-  this->setArrayIfNull();
-  if (!this->isArray()) {
-    print::error("Unable to push data to non-array object!",
-                 "void json::object::push(object &data)");
-  }
-
-  std::get<std::vector<object>>(this->_value).push_back(data);
-  return;
-}
-json::object::value &json::object::operator[](const size_t index) {
-  this->setArrayIfNull();
-  if (!this->isArray()) {
-    print::error("Unable to get data from non-array object!",
-                 "value &json::object::operator[](const size_t index)");
-  }
-
-  return std::get<std::vector<object>>(this->_value)[index]._value;
-}
-
-void json::object::insert(const std::string &itemKey, value &itemValue) {
-  this->setObjectIfNull();
-  if (!this->isObject()) {
-    print::error("Unable to insert data to non-object object!",
-                 "void json::object::insert(const std::string& itemKey, value& "
-                 "itemValue)");
-  }
-
-  std::get<std::map<std::string, object>>(this->_value)[itemKey] =
-      object(itemValue);
-  return;
-}
-void json::object::insert(const std::string &itemKey, value itemValue) {
-  this->setObjectIfNull();
-  if (!this->isObject()) {
-    print::error("Unable to insert data to non-object object!",
-                 "void json::object::insert(const std::string& itemKey, value "
-                 "itemValue)");
-  }
-
-  std::get<std::map<std::string, object>>(this->_value)[itemKey] =
-      object(itemValue);
-  return;
-}
-void json::object::insert(const std::string &itemKey, object &itemValue) {
-  this->setObjectIfNull();
-  if (!this->isObject()) {
-    print::error(
-        "Unable to insert data to non-object object!",
-        "void json::object::insert(const std::string& itemKey, object& "
-        "itemValue)");
-  }
-
-  std::get<std::map<std::string, object>>(this->_value)[itemKey] = itemValue;
-  return;
-}
-bool json::object::contains(const std::string &itemKey) {
-  this->setObjectIfNull();
-  if (!this->isObject()) {
-    print::error("Unable to reference non-object object via string!",
-                 "bool json::object::contains(const std::string &itemKey)");
-  }
-
-  if (std::get<std::map<std::string, object>>(this->_value).find(itemKey) ==
-      std::get<std::map<std::string, object>>(this->_value).end()) {
-    return false;
-  }
-  return true;
-}
-json::object::value &json::object::operator[](const std::string &itemKey) {
-  this->setObjectIfNull();
-  if (!this->isObject()) {
-    print::error("Unable to reference non-object object via string!",
-                 "json::object::value &json::object::operator[](const "
-                 "std::string &itemKey)");
-  }
-
-  return std::get<std::map<std::string, object>>(this->_value)[itemKey]._value;
-}
+// Array and Map operators ----------------------------
 
 size_t json::object::size() {
-  if (this->isArray()) {
-    return std::get<std::vector<object>>(this->_value).size();
-  }
-
-  if (this->isObject()) {
-    return std::get<std::map<std::string, object>>(this->_value).size();
-  }
-
-  if (this->isString()) {
-    return std::get<std::string>(this->_value).size();
-  }
-
-  print::error("Unable to get size of non-(string, array, object)",
-               "size_t json::object::size()");
-  return 0;
-}
-json::type json::object::getType() { return this->_type; }
-
-std::string json::object::dump(int indent, int baseIndent) const {
-  if (this->isNull()) {
-    return "null";
-  } else if (this->isBoolean()) {
-    return std::get<bool>(this->_value) ? "true" : "false";
-  } else if (this->isInteger()) {
-    return std::to_string(std::get<int>(this->_value));
-  } else if (this->isNumber()) {
-    return std::to_string(std::get<double>(this->_value));
-  } else if (this->isString()) {
-    return "\"" + std::get<std::string>(this->_value) + "\"";
-  }
-
-  size_t _size;
-  std::string result;
-  if (baseIndent == -1) {
-    baseIndent = indent;
-  }
-
-  if (this->isArray()) {
-    _size = std::get<std::vector<object>>(this->_value).size();
-    result = "[";
-    if (indent > 0)
-      result += "\n";
-
-    for (size_t i = 0; i < _size; i++) {
-      result += std::string(indent, ' ') +
-                std::get<std::vector<object>>(this->_value)[i].dump(
-                    indent + baseIndent, baseIndent);
-      if (i != _size - 1) {
-        result += ",";
-      }
-      if (indent > 0)
-        result += "\n";
-    }
-
-    result += std::string(indent - baseIndent, ' ') + "]";
+  if (this->_type.get() == type::array) {
+    return this->_array.size();
+  } else if (this->_type.get() == type::map) {
+    return this->_map.size();
   } else {
-    _size = std::get<std::map<std::string, object>>(this->_value).size();
-    result = "{";
-    if (indent > 0)
-      result += "\n";
-
-    size_t i = 0;
-    for (const std::pair<const std::string, object> &item :
-         std::get<std::map<std::string, object>>(this->_value)) {
-      result += std::string(indent, ' ') + "\"" + item.first + "\":";
-      if (indent > 0)
-        result += " ";
-      result += item.second.dump(indent + baseIndent, baseIndent);
-
-      if (i != _size - 1)
-        result += ",";
-      if (indent > 0)
-        result += "\n";
-      i++;
-    }
-
-    result += std::string(indent - baseIndent, ' ') + "}";
+    throw std::runtime_error("Cannot get size of non-[array, map] objects");
   }
-
-  return result;
+  return -1;
 }
-void json::object::dumps(const std::string &filePath, int indent) {
-  std::ofstream jsonFile(filePath);
+void json::object::clear() {
+  if (this->_type.get() == type::array) {
+    this->_array.clear();
+  } else if (this->_type.get() == type::map) {
+    this->_map.clear();
+  } else {
+    throw std::runtime_error("Cannot clear non-[array, map] objects");
+  }
+  return;
+}
+
+// object operators -----------------------------------
+
+void json::object::reset() {
+  this->clearVariant();
+  this->clearArray();
+  this->clearMap();
+  this->_type.set(type::undefined);
+  return;
+}
+void json::object::dump(std::string path, size_t indent) {
+  std::ofstream jsonFile(path);
   if (!jsonFile.is_open()) {
-    print::error("Unable to open " + filePath,
-                 "void json::object::dumps(const std::string &filePath, int "
-                 "indent = 0)");
+    std::runtime_error("Unable to open " + path);
   }
 
-  std::string _json = this->dump(indent);
-  jsonFile.write(_json.c_str(), _json.size());
+  std::string stringified = this->dumps(indent);
+  jsonFile.write(stringified.c_str(), stringified.size());
   jsonFile.close();
 
   return;
 }
-
-void json::object::copyTo(object &obj) {
-  switch (this->_type) {
-  case type::Boolean:
-    obj = std::get<bool>(this->_value);
-    break;
-
-  case type::Integer:
-    obj = std::get<int>(this->_value);
-    break;
-
-  case type::Number:
-    obj = std::get<double>(this->_value);
-    break;
-
-  case type::String:
-    obj = std::get<std::string>(this->_value);
-    break;
-
-  case type::Array:
-    obj = std::get<std::vector<object>>(this->_value);
-    break;
-
-  case type::Object:
-    obj = std::get<std::map<std::string, object>>(this->_value);
-    break;
-
-  default:
-    obj = nullptr;
-    break;
+std::string json::object::dumps(size_t indent, size_t baseIndent) {
+  if (this->_type.get() == type::undefined) {
+    return "undefined";
+  } else if (this->_type.get() == type::null) {
+    return "null";
+  } else if (this->_type.get() == type::boolean) {
+    bool val = std::get<bool>(this->_value);
+    if (val)
+      return "true";
+    else
+      return "false";
+  } else if (this->_type.get() == type::integer) {
+    return std::to_string(std::get<int>(this->_value));
+  } else if (this->_type.get() == type::number) {
+    return std::to_string(std::get<double>(this->_value));
+  } else if (this->_type.get() == type::string) {
+    return "\"" + std::get<std::string>(this->_value) + "\"";
   }
 
-  return;
-}
-json::object json::object::copy() {
-  object newObject;
-  this->copyTo(newObject);
+  size_t _size = this->size();
+  std::string result;
+  int newBaseIndent = indent + baseIndent;
 
-  return newObject;
-}
-void json::object::clear() {
-  this->_type = type::Null;
-  this->_value = nullptr;
-
-  return;
-}
-
-void json::object::setArrayIfNull() {
-  if (this->_type == type::Null) {
-    this->_type = type::Array;
-    this->_value = std::vector<object>();
+  if (this->_type.get() == type::array) {
+    result += "[";
+    if (indent > 0)
+      result += "\n";
+    for (size_t i = 0; i < _size; i++) {
+      result += std::string(newBaseIndent, ' ');
+      result += this->_array[i].dumps(indent, newBaseIndent);
+      if (i + 1 != _size)
+        result += ",";
+      if (indent > 0)
+        result += "\n";
+      else if (i + 1 != _size)
+        result += " ";
+    }
+    result += std::string(baseIndent, ' ') + "]";
+  } else {
+    result += "{";
+    if (indent > 0)
+      result += "\n";
+    for (auto it = this->_map.begin(); it != this->_map.end(); it++) {
+      result += std::string(newBaseIndent, ' ');
+      result += "\"" + it->first + "\": ";
+      result += it->second.dumps(indent, newBaseIndent);
+      if (std::next(it) != this->_map.end())
+        result += ",";
+      if (indent > 0)
+        result += "\n";
+      else if (std::next(it) != this->_map.end())
+        result += " ";
+    }
+    result += std::string(baseIndent, ' ') + "}";
   }
 
-  return;
+  return result;
 }
-void json::object::setObjectIfNull() {
-  if (this->_type == type::Null) {
-    this->_type = type::Object;
-    this->_value = std::map<std::string, object>();
-  }
 
+// Output functions -----------------------------------
+
+void json::object::clearVariant() {
+  this->_value = {};
   return;
 }
+
+void json::object::clearArray() {
+  this->_array.clear();
+  return;
+}
+void json::object::setArrayIfUndefined() {
+  if (this->_type.get() == type::undefined) {
+    this->clearVariant();
+    this->clearMap();
+    this->_type.set(type::array);
+  }
+  return;
+}
+void json::object::assertIsArray() {
+  this->setArrayIfUndefined();
+  if (this->_type.get() != type::array) {
+    throw std::runtime_error("This object is not an array");
+  }
+}
+
+void json::object::clearMap() {
+  this->_map.clear();
+  return;
+}
+void json::object::setMapIfUndefined() {
+  if (this->_type.get() == type::undefined) {
+    this->clearVariant();
+    this->clearArray();
+    this->_type.set(type::map);
+  }
+  return;
+}
+void json::object::assertIsMap() {
+  this->setMapIfUndefined();
+  if (!this->_type.get() == type::map) {
+    throw std::runtime_error("This object is not an object");
+  }
+}
+
+// Friend functions -----------------------------------
+
+namespace json {
+
+std::ostream &operator<<(std::ostream &os, object &obj) {
+  os << obj.dumps(0);
+  return os;
+}
+
+} // namespace json

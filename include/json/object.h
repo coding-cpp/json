@@ -1,79 +1,75 @@
 #pragma once
 
 #include <fstream>
+#include <iostream>
 #include <map>
-#include <stdexcept>
 #include <string>
 #include <variant>
 #include <vector>
 
-#include <json/print.h>
 #include <json/type.h>
 
 namespace json {
 
 class object {
 private:
-  using value =
+  using value = std::variant<std::nullptr_t, bool, int, double, std::string>;
+  using all_values =
       std::variant<std::nullptr_t, bool, int, double, std::string,
                    std::vector<object>, std::map<std::string, object>>;
 
   type _type;
-  value _value;
 
-  void setArrayIfNull();
-  void setObjectIfNull();
+  void clearVariant();
+
+  void clearArray();
+  void setArrayIfUndefined();
+  void assertIsArray();
+
+  void clearMap();
+  void setMapIfUndefined();
+  void assertIsMap();
+
+protected:
+  value _value;
+  std::vector<object> _array;
+  std::map<std::string, object> _map;
 
 public:
   object();
-  object(bool data);
-  object(int data);
-  object(double data);
-  object(const std::string &data);
-  object(const char *data);
-  object(const std::vector<object> &data);
-  object(const std::map<std::string, object> &data);
-  object(value &data);
+  object(all_values data);
   ~object();
 
-  void operator=(bool data);
-  void operator=(int data);
-  void operator=(double data);
-  void operator=(const std::string &data);
-  void operator=(const char *data);
-  void operator=(const std::vector<object> &data);
-  void operator=(const std::map<std::string, object> &data);
+  // Equal to operators
+  object &operator=(std::nullptr_t data);
+  object &operator=(bool data);
+  object &operator=(int data);
+  object &operator=(double data);
+  object &operator=(const char *data);
+  object &operator=(std::vector<object> data);
+  object &operator=(std::map<std::string, object> data);
 
-  bool isNull() const;
-  bool isBoolean() const;
-  bool isInteger() const;
-  bool isNumber() const;
-  bool isString() const;
-  bool isArray() const;
-  bool isObject() const;
+  // Array operators
+  object &operator[](const size_t index);
+  const object &operator[](const size_t index) const;
+  void push_back(all_values data);
 
-  // For array
-  void push(value &data);
-  void push(value data);
-  void push(object &data);
-  value &operator[](const size_t index);
+  // Map operators
+  object &operator[](const std::string &key);
+  const object &operator[](const std::string &key) const;
+  void insert(const std::string key, all_values data);
 
-  // For object
-  void insert(const std::string &itemKey, value &itemValue);
-  void insert(const std::string &itemKey, value itemValue);
-  void insert(const std::string &itemKey, object &itemValue);
-  bool contains(const std::string &itemKey);
-  value &operator[](const std::string &itemKey);
-
+  // Array and Map operators
   size_t size();
-  type getType();
-
-  std::string dump(int indent = 0, int baseIndent = -1) const;
-  void dumps(const std::string &filePath, int indent = 0);
-
-  void copyTo(object &obj);
-  object copy();
   void clear();
+
+  // object operators
+  void reset();
+  void dump(std::string path, size_t indent = 0);
+  std::string dumps(size_t indent = 0, size_t baseIndent = 0);
+
+  // Output functions
+  friend std::ostream &operator<<(std::ostream &os, object &obj);
 };
 
 } // namespace json
