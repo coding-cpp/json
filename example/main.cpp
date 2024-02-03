@@ -1,5 +1,6 @@
 // Includes required
 #include <json/object.h>
+#include <json/parse.h>
 
 // Using namespace
 using namespace json;
@@ -18,7 +19,11 @@ int main(int argc, char **argv) {
   person["languages"] = languages;
   person["languages"].push_back("French");
 
-  std::cout << person << std::endl;
+  std::cout << person << std::endl << std::endl;
+
+  parser jsonParser;
+  object obj = jsonParser.parse(person.dumps(2));
+  std::cout << obj.dumps(4) << std::endl;
 
   return EXIT_SUCCESS;
 }

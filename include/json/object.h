@@ -53,6 +53,7 @@ public:
   object &operator[](const size_t index);
   const object &operator[](const size_t index) const;
   void push_back(all_values data);
+  void push_back(object data);
 
   // Map operators
   object &operator[](const std::string &key);

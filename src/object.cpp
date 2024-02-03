@@ -107,6 +107,12 @@ void json::object::push_back(all_values data) {
   this->_array.push_back(*newObject);
   return;
 }
+void json::object::push_back(object data) {
+  this->assertIsArray();
+
+  this->_array.push_back(data);
+  return;
+}
 
 // Map operators --------------------------------------
 
@@ -203,6 +209,10 @@ std::string json::object::dumps(size_t indent, size_t baseIndent) {
 
   if (this->_type.get() == type::array) {
     result += "[";
+    if (_size == 0) {
+      result += "]";
+      return result;
+    }
     if (indent > 0)
       result += "\n";
     for (size_t i = 0; i < _size; i++) {
@@ -218,6 +228,10 @@ std::string json::object::dumps(size_t indent, size_t baseIndent) {
     result += std::string(baseIndent, ' ') + "]";
   } else {
     result += "{";
+    if (_size == 0) {
+      result += "}";
+      return result;
+    }
     if (indent > 0)
       result += "\n";
     for (auto it = this->_map.begin(); it != this->_map.end(); it++) {
@@ -287,7 +301,7 @@ void json::object::assertIsMap() {
 namespace json {
 
 std::ostream &operator<<(std::ostream &os, object &obj) {
-  os << obj.dumps(0);
+  os << obj.dumps(2);
   return os;
 }
 
