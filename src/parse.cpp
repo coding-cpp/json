@@ -30,7 +30,6 @@ json::object json::parser::parseValue() {
   this->skipWhitespace();
   char firstChar = this->getCurrChar();
 
-  std::cout << firstChar << std::endl;
   if (firstChar == 't' || firstChar == 'f' || firstChar == 'n' ||
       firstChar == 'u')
     return this->parseBooleanNullOrUndefined();
@@ -43,7 +42,6 @@ json::object json::parser::parseValue() {
   else if (firstChar == '{')
     return this->parseMap();
 
-  // std::cout << this->getPrevChar() << this->getCurrChar() << std::endl;
   throw std::runtime_error("Invalid JSON (first character)");
 }
 
