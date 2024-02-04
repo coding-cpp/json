@@ -13,9 +13,10 @@ namespace json {
 
 class object {
 private:
-  using value = std::variant<std::nullptr_t, bool, int, double, std::string>;
+  using value =
+      std::variant<std::nullptr_t, bool, long long int, double, std::string>;
   using all_values =
-      std::variant<std::nullptr_t, bool, int, double, std::string,
+      std::variant<std::nullptr_t, bool, long long int, double, std::string,
                    std::vector<object>, std::map<std::string, object>>;
 
   type _type;
@@ -44,6 +45,7 @@ public:
   object &operator=(std::nullptr_t data);
   object &operator=(bool data);
   object &operator=(int data);
+  object &operator=(long long int data);
   object &operator=(double data);
   object &operator=(const char *data);
   object &operator=(std::vector<object> data);

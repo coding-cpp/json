@@ -11,7 +11,7 @@ json::object::object(all_values data) {
   else if (data.index() == 1)
     *this = std::get<bool>(data);
   else if (data.index() == 2)
-    *this = std::get<int>(data);
+    *this = std::get<long long int>(data);
   else if (data.index() == 3)
     *this = std::get<double>(data);
   else if (data.index() == 4)
@@ -43,6 +43,13 @@ json::object &json::object::operator=(bool data) {
   return *this;
 }
 json::object &json::object::operator=(int data) {
+  this->_value = static_cast<long long int>(data);
+  this->_type.set(type::integer);
+  this->clearArray();
+  this->clearMap();
+  return *this;
+}
+json::object &json::object::operator=(long long int data) {
   this->_value = data;
   this->_type.set(type::integer);
   this->clearArray();
@@ -196,7 +203,7 @@ std::string json::object::dumps(size_t indent, size_t baseIndent) {
     else
       return "false";
   } else if (this->_type.get() == type::integer) {
-    return std::to_string(std::get<int>(this->_value));
+    return std::to_string(std::get<long long int>(this->_value));
   } else if (this->_type.get() == type::number) {
     return std::to_string(std::get<double>(this->_value));
   } else if (this->_type.get() == type::string) {

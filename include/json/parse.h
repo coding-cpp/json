@@ -22,6 +22,7 @@ private:
   object parseMap();
 
   void skipWhitespace();
+  char getPrevChar();
   char getCurrChar();
   char getNextChar();
 

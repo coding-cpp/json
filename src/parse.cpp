@@ -69,18 +69,27 @@ json::object json::parser::parseNumber() {
   }
 
   if (isInt)
-    return object(std::stoi(number));
+    return object(std::stoll(number));
   return object(std::stod(number));
 }
 json::object json::parser::parseString() {
   std::string value = "";
-  value += this->getNextChar();
-  char nextChar;
+  char nextChar = this->getNextChar();
 
-  while ((nextChar = this->getNextChar()) != '"')
+  if (nextChar != '"') {
     value += nextChar;
-  this->getNextChar();
 
+    while (true) {
+      nextChar = this->getNextChar();
+      if (nextChar == '"') {
+        if (this->getPrevChar() != '\\')
+          break;
+      }
+      value += nextChar;
+    }
+  }
+
+  this->getNextChar();
   return object(value);
 }
 json::object json::parser::parseArray() {
@@ -114,14 +123,22 @@ json::object json::parser::parseMap() {
   while (true) {
     this->getNextChar();
     this->skipWhitespace();
-    if (this->getCurrChar() == '}')
+    if (this->getCurrChar() == '}') {
+      this->getNextChar();
       break;
+    }
 
     if (this->getCurrChar() == '"') {
       std::string key = "";
       char nextChar;
-      while ((nextChar = this->getNextChar()) != '"')
+      while (true) {
+        nextChar = this->getNextChar();
+        if (nextChar == '"') {
+          if (this->getPrevChar() != '\\')
+            break;
+        }
         key += nextChar;
+      }
 
       this->getNextChar();
       this->skipWhitespace();
@@ -153,6 +170,12 @@ void json::parser::skipWhitespace() {
     this->index++;
   }
   return;
+}
+char json::parser::getPrevChar() {
+  if (this->index > 0) {
+    return this->input[this->index - 1];
+  }
+  return '\0';
 }
 char json::parser::getCurrChar() {
   if (this->index < this->input.size()) {
