@@ -22,9 +22,9 @@ private:
   object parseMap();
 
   void skipWhitespace();
+  bool shouldStringBeEscaped();
   char getPrevChar();
   char getCurrChar();
-  char getNextChar();
 
 public:
   parser();

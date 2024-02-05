@@ -47,11 +47,12 @@ json::object json::parser::parseValue() {
 
 json::object json::parser::parseBooleanNullOrUndefined() {
   std::string keyword = "";
-  keyword += this->getCurrChar();
-  char nextChar;
+  char currChar = this->getCurrChar();
 
-  while (isalpha(nextChar = this->getNextChar())) {
-    keyword += nextChar;
+  while (isalpha(currChar)) {
+    keyword += currChar;
+    this->index++;
+    currChar = this->getCurrChar();
   }
 
   if (keyword == "true")
@@ -67,112 +68,120 @@ json::object json::parser::parseBooleanNullOrUndefined() {
 }
 json::object json::parser::parseNumber() {
   std::string number = "";
-  number += this->getCurrChar();
-  char nextChar;
-
+  char currChar = this->getCurrChar();
   bool isInt = true;
-  while (std::isdigit(nextChar = getNextChar()) || nextChar == '.' ||
-         nextChar == 'e' || nextChar == 'E' || nextChar == '+' ||
-         nextChar == '-') {
-    number += nextChar;
-    if (nextChar == '.')
+
+  while (std::isdigit(currChar) || currChar == '.' || currChar == 'e' ||
+         currChar == 'E' || currChar == '+' || currChar == '-') {
+    number += currChar;
+    if (currChar == '.') {
       isInt = false;
+    }
+
+    this->index++;
+    currChar = this->getCurrChar();
   }
 
   if (isInt)
     return object(std::stoll(number));
-  return object(std::stod(number));
+  else
+    return object(std::stod(number));
 }
 json::object json::parser::parseString() {
   std::string value = "";
-  char nextChar = this->getNextChar();
+  this->index++;
+  char currChar = this->getCurrChar();
 
-  if (nextChar == '"') {
-    this->getNextChar();
-    return object(value);
-  }
+  if (currChar != '"') {
+    while (true) {
+      value += currChar;
+      this->index++;
+      currChar = this->getCurrChar();
 
-  while (true) {
-    value += nextChar;
-    nextChar = this->getNextChar();
-
-    if (nextChar == '"') {
-      if (this->getPrevChar() != '\\')
-        break;
+      if (currChar == '"') {
+        if (this->shouldStringBeEscaped()) {
+          break;
+        }
+      }
     }
   }
 
-  this->getNextChar();
+  this->index++;
   return object(value);
 }
 json::object json::parser::parseArray() {
   std::vector<object> emptyVector;
   object result(emptyVector);
-  this->getNextChar();
-  this->skipWhitespace();
-  char nextChar;
+  this->index++;
+  char currChar;
 
   while (true) {
-    nextChar = this->getCurrChar();
+    this->skipWhitespace();
+    currChar = this->getCurrChar();
 
-    if (nextChar == ']')
+    if (currChar == ']') {
+      this->index++;
       break;
-    else if (nextChar == ',') {
-      this->getNextChar();
+    } else if (currChar == ',') {
+      this->index++;
       continue;
     }
 
     result.push_back(this->parseValue());
-    this->skipWhitespace();
   }
 
-  this->getNextChar();
   return result;
 }
 json::object json::parser::parseMap() {
   std::map<std::string, object> emptyMap;
   object result(emptyMap);
-  char nextChar;
+  this->index++;
+  char currChar;
 
+  std::string key = "";
   while (true) {
-    this->getNextChar();
     this->skipWhitespace();
-    nextChar = this->getCurrChar();
+    currChar = this->getCurrChar();
 
-    if (nextChar == '}')
+    if (currChar == '}') {
+      this->index++;
       break;
-    else if (nextChar == ',')
+    } else if (currChar == ',') {
+      this->index++;
       continue;
+    }
 
-    if (nextChar != '"')
+    if (currChar != '"')
       throw std::runtime_error("Invalid JSON (map key)");
 
-    std::string key = "";
-    nextChar = this->getNextChar();
-    if (nextChar == '"')
+    this->index++;
+    currChar = this->getCurrChar();
+    if (currChar == '"')
       throw std::runtime_error("Invalid JSON (map key)");
 
+    key = "";
     while (true) {
-      key += nextChar;
-      nextChar = this->getNextChar();
+      key += currChar;
+      this->index++;
+      currChar = this->getCurrChar();
 
-      if (nextChar == '"') {
-        if (this->getPrevChar() != '\\')
+      if (currChar == '"') {
+        if (this->shouldStringBeEscaped()) {
+          this->index++;
           break;
+        }
       }
     }
 
-    this->getNextChar();
     this->skipWhitespace();
-    nextChar = this->getCurrChar();
-    if (nextChar != ':')
-      throw std::runtime_error("Invalid JSON (map key-value)");
+    currChar = this->getCurrChar();
+    if (currChar != ':')
+      throw std::runtime_error("Invalid JSON (map-key value)");
 
-    this->getNextChar();
+    this->index++;
     result[key] = this->parseValue();
   }
 
-  this->getNextChar();
   return result;
 }
 
@@ -181,6 +190,20 @@ void json::parser::skipWhitespace() {
     this->index++;
   }
   return;
+}
+bool json::parser::shouldStringBeEscaped() {
+  int backslashes = 0;
+  for (int i = this->index - 1; i >= 0; i--) {
+    if (this->input[i] == '\\') {
+      backslashes++;
+    } else {
+      break;
+    }
+  }
+  if (backslashes % 2 == 0) {
+    return true;
+  }
+  return false;
 }
 char json::parser::getPrevChar() {
   if (this->index > 0) {
@@ -193,8 +216,4 @@ char json::parser::getCurrChar() {
     return this->input[this->index];
   }
   return '\0';
-}
-char json::parser::getNextChar() {
-  this->index++;
-  return this->getCurrChar();
 }
