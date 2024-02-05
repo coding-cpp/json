@@ -31,8 +31,8 @@ public:
   parser(std::string data);
   ~parser();
 
-  object load(std::string data);
-  object loads(std::string path);
+  object load(std::string path);
+  object loads(std::string data);
 };
 
 } // namespace json

@@ -6,15 +6,7 @@ json::parser::parser(std::string data) : input(data) { return; }
 
 json::parser::~parser() { return; }
 
-json::object json::parser::load(std::string data) {
-  this->input = data;
-  this->index = 0;
-  this->output.reset();
-
-  this->output = this->parseValue();
-  return this->output;
-}
-json::object json::parser::loads(std::string path) {
+json::object json::parser::load(std::string path) {
   std::ifstream file(path);
   if (!file.is_open())
     throw std::runtime_error("File not found");
@@ -23,7 +15,15 @@ json::object json::parser::loads(std::string path) {
   buffer << file.rdbuf();
   file.close();
 
-  return this->load(buffer.str());
+  return this->loads(buffer.str());
+}
+json::object json::parser::loads(std::string data) {
+  this->input = data;
+  this->index = 0;
+  this->output.reset();
+
+  this->output = this->parseValue();
+  return this->output;
 }
 
 json::object json::parser::parseValue() {
