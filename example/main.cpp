@@ -23,7 +23,7 @@ int main(int argc, char **argv) {
 
   parser jsonParser;
   object obj = jsonParser.loads(person.dumps(2));
-  std::cout << obj.dumps(4) << std::endl;
+  logger::success(obj.dumps(2));
 
   return EXIT_SUCCESS;
 }

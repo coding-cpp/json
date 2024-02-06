@@ -19,6 +19,10 @@ add_executable(json
   ./src/parse.cpp
   ./src/type.cpp
 
+  # Logger
+  ./lib/logger/src/config.cpp
+  ./lib/logger/src/log.cpp
+
   ./example/main.cpp
 )
 
@@ -26,4 +30,6 @@ target_include_directories(json
   PUBLIC
     $<INSTALL_INTERFACE:include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:lib/logger/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/logger/include>
 )

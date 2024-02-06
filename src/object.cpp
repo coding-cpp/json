@@ -21,7 +21,8 @@ json::object::object(all_values data) {
   else if (data.index() == 6)
     *this = std::get<std::map<std::string, object>>(data);
   else
-    throw std::runtime_error("Invalid data type passed!");
+    logger::error("Invalid data type passed",
+                  "json::object::object(all_values data)");
   return;
 }
 json::object::~object() { return; }
@@ -91,18 +92,23 @@ json::object &json::object::operator[](const size_t index) {
   this->assertIsArray();
 
   if (index >= this->_array.size()) {
-    throw std::out_of_range("Index out of range");
+    logger::error("Index out of range",
+                  "json::object &json::object::operator[](const size_t index)");
   }
 
   return this->_array[index];
 }
 const json::object &json::object::operator[](const size_t index) const {
   if (!this->_type.get() == type::array) {
-    throw std::runtime_error("This object is not an array");
+    logger::error("This object is not an array",
+                  "const json::object &json::object::operator[](const size_t "
+                  "index) const");
   }
 
   if (index >= this->_array.size()) {
-    throw std::out_of_range("Index out of range");
+    logger::error("Index out of range",
+                  "const json::object &json::object::operator[](const size_t "
+                  "index) const");
   }
 
   return this->_array.at(index);
@@ -126,7 +132,9 @@ void json::object::push_back(object data) {
 json::object &json::object::operator[](const std::string &key) {
 
   if (!this->_type.get() == type::map) {
-    throw std::runtime_error("This object is not an object");
+    logger::error(
+        "This object is not an object",
+        "json::object &json::object::operator[](const std::string &key)");
   }
 
   this->_type.set(type::map);
@@ -134,7 +142,9 @@ json::object &json::object::operator[](const std::string &key) {
 }
 const json::object &json::object::operator[](const std::string &key) const {
   if (this->_type.get() != type::map) {
-    throw std::runtime_error("This object is not an object");
+    logger::error("This object is not an object",
+                  "const json::object &json::object::operator[](const "
+                  "std::string &key) const");
   }
 
   return this->_map.at(key);
@@ -155,7 +165,8 @@ size_t json::object::size() {
   } else if (this->_type.get() == type::map) {
     return this->_map.size();
   } else {
-    throw std::runtime_error("Cannot get size of non-[array, map] objects");
+    logger::error("Cannot get size of non-[array, map] objects",
+                  "size_t json::object::size()");
   }
   return -1;
 }
@@ -165,7 +176,8 @@ void json::object::clear() {
   } else if (this->_type.get() == type::map) {
     this->_map.clear();
   } else {
-    throw std::runtime_error("Cannot clear non-[array, map] objects");
+    logger::error("Cannot clear non-[array, map] objects",
+                  "void json::object::clear()");
   }
   return;
 }
@@ -182,7 +194,8 @@ void json::object::reset() {
 void json::object::dump(std::string path, size_t indent) {
   std::ofstream jsonFile(path);
   if (!jsonFile.is_open()) {
-    std::runtime_error("Unable to open " + path);
+    logger::error("Unable to open " + path,
+                  "void json::object::dump(std::string path, size_t indent)");
   }
 
   std::string stringified = this->dumps(indent);
@@ -280,7 +293,8 @@ void json::object::setArrayIfUndefined() {
 void json::object::assertIsArray() {
   this->setArrayIfUndefined();
   if (this->_type.get() != type::array) {
-    throw std::runtime_error("This object is not an array");
+    logger::error("This object is not an array",
+                  "void json::object::assertIsArray()");
   }
 }
 
@@ -299,7 +313,8 @@ void json::object::setMapIfUndefined() {
 void json::object::assertIsMap() {
   this->setMapIfUndefined();
   if (!this->_type.get() == type::map) {
-    throw std::runtime_error("This object is not an object");
+    logger::error("This object is not an object",
+                  "void json::object::assertIsMap()");
   }
 }
 

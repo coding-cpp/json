@@ -3,6 +3,8 @@
 #include <cctype>
 #include <sstream>
 
+#include <logger/log.h>
+
 #include <json/object.h>
 
 namespace json {

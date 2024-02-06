@@ -7,6 +7,8 @@
 #include <variant>
 #include <vector>
 
+#include <logger/log.h>
+
 #include <json/type.h>
 
 namespace json {

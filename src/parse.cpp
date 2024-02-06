@@ -9,7 +9,8 @@ json::parser::~parser() { return; }
 json::object json::parser::load(std::string path) {
   std::ifstream file(path);
   if (!file.is_open())
-    throw std::runtime_error("File not found");
+    logger::error("File not found " + path,
+                  "json::object json::parser::load(std::string path)");
 
   std::stringstream buffer;
   buffer << file.rdbuf();
@@ -42,7 +43,8 @@ json::object json::parser::parseValue() {
   else if (firstChar == '{')
     return this->parseMap();
 
-  throw std::runtime_error("Invalid JSON (first character)");
+  logger::error("Invalid JSON", "json::object json::parser::parseValue()");
+  return object();
 }
 
 json::object json::parser::parseBooleanNullOrUndefined() {
@@ -64,7 +66,9 @@ json::object json::parser::parseBooleanNullOrUndefined() {
   else if (keyword == "undefined")
     return object();
 
-  throw std::runtime_error("Invalid JSON (bool, null, undefined)");
+  logger::error("Invalid JSON",
+                "json::object json::parser::parseBooleanNullOrUndefined()");
+  return object();
 }
 json::object json::parser::parseNumber() {
   std::string number = "";
@@ -152,12 +156,12 @@ json::object json::parser::parseMap() {
     }
 
     if (currChar != '"')
-      throw std::runtime_error("Invalid JSON (map key)");
+      logger::error("Invalid JSON", "json::object json::parser::parseMap()");
 
     this->index++;
     currChar = this->getCurrChar();
     if (currChar == '"')
-      throw std::runtime_error("Invalid JSON (map key)");
+      logger::error("Invalid JSON", "json::object json::parser::parseMap()");
 
     key = "";
     while (true) {
@@ -176,7 +180,7 @@ json::object json::parser::parseMap() {
     this->skipWhitespace();
     currChar = this->getCurrChar();
     if (currChar != ':')
-      throw std::runtime_error("Invalid JSON (map-key value)");
+      logger::error("Invalid JSON", "json::object json::parser::parseMap()");
 
     this->index++;
     result[key] = this->parseValue();
