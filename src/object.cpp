@@ -90,7 +90,6 @@ json::object &json::object::operator=(std::map<std::string, object> data) {
 
 json::object &json::object::operator[](const size_t index) {
   this->assertIsArray();
-
   if (index >= this->_array.size()) {
     logger::error("Index out of range",
                   "json::object &json::object::operator[](const size_t index)");
@@ -113,24 +112,41 @@ const json::object &json::object::operator[](const size_t index) const {
 
   return this->_array.at(index);
 }
+void json::object::pop_back() {
+  this->assertIsArray();
+  this->_array.pop_back();
+  return;
+}
 void json::object::push_back(all_values data) {
   this->assertIsArray();
-
   object *newObject = new object(data);
   this->_array.push_back(*newObject);
   return;
 }
 void json::object::push_back(object data) {
   this->assertIsArray();
-
   this->_array.push_back(data);
+  return;
+}
+void json::object::reserve(size_t size) {
+  this->assertIsArray();
+  this->_array.reserve(size);
+  return;
+}
+void json::object::resize(size_t size) {
+  this->assertIsArray();
+  this->_array.resize(size);
+  return;
+}
+void json::object::shrink_to_fit() {
+  this->assertIsArray();
+  this->_array.shrink_to_fit();
   return;
 }
 
 // Map operators --------------------------------------
 
 json::object &json::object::operator[](const std::string &key) {
-
   if (!this->_type.get() == type::map) {
     logger::error(
         "This object is not an object",
@@ -149,9 +165,17 @@ const json::object &json::object::operator[](const std::string &key) const {
 
   return this->_map.at(key);
 }
+void json::object::erase(const std::string key) {
+  this->assertIsMap();
+  this->_map.erase(key);
+  return;
+}
+std::map<std::string, json::object>::iterator json::object::find(const std::string key){
+  this->assertIsMap();
+  return this->_map.find(key);
+}
 void json::object::insert(const std::string key, all_values data) {
   this->assertIsMap();
-
   object *newObject = new object(data);
   this->_map[key] = *newObject;
   return;
@@ -201,7 +225,6 @@ void json::object::dump(std::string path, size_t indent) {
   std::string stringified = this->dumps(indent);
   jsonFile.write(stringified.c_str(), stringified.size());
   jsonFile.close();
-
   return;
 }
 std::string json::object::dumps(size_t indent, size_t baseIndent) {

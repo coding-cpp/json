@@ -56,12 +56,18 @@ public:
   // Array operators
   object &operator[](const size_t index);
   const object &operator[](const size_t index) const;
+  void pop_back();
   void push_back(all_values data);
   void push_back(object data);
+  void reserve(size_t size);
+  void resize(size_t size);
+  void shrink_to_fit();
 
   // Map operators
   object &operator[](const std::string &key);
   const object &operator[](const std::string &key) const;
+  void erase(const std::string key);
+  std::map<std::string, json::object>::iterator find(const std::string key);
   void insert(const std::string key, all_values data);
 
   // Array and Map operators
