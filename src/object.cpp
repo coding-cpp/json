@@ -359,14 +359,6 @@ object::operator std::nullptr_t() const {
 
   return nullptr;
 }
-// object::operator bool() const {
-//   if (this->_type.get() != type::boolean) {
-//     logger::error("This object is not a boolean",
-//                   "json::object::operator bool()");
-//   }
-
-//   return std::get<bool>(this->_value);
-// }
 object::operator double() const {
   if (this->_type.get() != type::number && this->_type.get() != type::integer &&
       this->_type.get() != type::boolean) {
