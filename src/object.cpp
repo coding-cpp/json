@@ -368,7 +368,6 @@ object::operator std::nullptr_t() const {
 //   return std::get<bool>(this->_value);
 // }
 object::operator double() const {
-  std::cout << this->_type.get() << std::endl;
   if (this->_type.get() != type::number && this->_type.get() != type::integer &&
       this->_type.get() != type::boolean) {
     logger::error("This object is not a number",
