@@ -170,7 +170,8 @@ void json::object::erase(const std::string key) {
   this->_map.erase(key);
   return;
 }
-std::map<std::string, json::object>::iterator json::object::find(const std::string key){
+std::map<std::string, json::object>::iterator
+json::object::find(const std::string key) {
   this->assertIsMap();
   return this->_map.find(key);
 }
@@ -348,6 +349,46 @@ namespace json {
 std::ostream &operator<<(std::ostream &os, object &obj) {
   os << obj.dumps(2);
   return os;
+}
+
+object::operator std::nullptr_t() const {
+  if (this->_type.get() != type::null) {
+    logger::error("This object is not a null",
+                  "json::object::operator std::nullptr_t()");
+  }
+
+  return nullptr;
+}
+// object::operator bool() const {
+//   if (this->_type.get() != type::boolean) {
+//     logger::error("This object is not a boolean",
+//                   "json::object::operator bool()");
+//   }
+
+//   return std::get<bool>(this->_value);
+// }
+object::operator double() const {
+  std::cout << this->_type.get() << std::endl;
+  if (this->_type.get() != type::number && this->_type.get() != type::integer &&
+      this->_type.get() != type::boolean) {
+    logger::error("This object is not a number",
+                  "json::object::operator double()");
+  }
+
+  if (this->_type.get() == type::integer)
+    return static_cast<double>(std::get<long long int>(this->_value));
+  else if (this->_type.get() == type::boolean)
+    return static_cast<double>(std::get<bool>(this->_value));
+  else
+    return std::get<double>(this->_value);
+}
+object::operator std::string() const {
+  if (this->_type.get() != type::string) {
+    logger::error("This object is not a string",
+                  "json::object::operator std::string()");
+  }
+
+  return std::get<std::string>(this->_value);
 }
 
 } // namespace json

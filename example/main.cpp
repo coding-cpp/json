@@ -10,6 +10,7 @@ int main(int argc, char **argv) {
   person["age"] = 21;
   person.insert("name", "Adit");
   person["height"] = 186.5;
+  person["alive"] = true;
 
   object languages;
   languages.push_back("German");
@@ -18,8 +19,16 @@ int main(int argc, char **argv) {
 
   person["languages"] = languages;
   person["languages"].push_back("French");
+  logger::info(person.dumps(2));
 
-  std::cout << person << std::endl << std::endl;
+  std::string name = person["name"];
+  logger::info(name);
+
+  int age = person["age"];
+  logger::info(std::to_string(age));
+
+  bool alive = person["alive"];
+  logger::info(alive ? "Alive" : "Dead");
 
   parser jsonParser;
   object obj = jsonParser.loads(person.dumps(2));

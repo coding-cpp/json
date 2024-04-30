@@ -81,6 +81,11 @@ public:
 
   // Output functions
   friend std::ostream &operator<<(std::ostream &os, object &obj);
+
+  operator std::nullptr_t() const;
+  // operator bool() const;
+  operator double() const;
+  operator std::string() const;
 };
 
 } // namespace json
