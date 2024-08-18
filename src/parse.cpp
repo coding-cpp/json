@@ -44,7 +44,7 @@ json::object json::parser::parseValue() {
     return this->parseMap();
 
   logger::error("Invalid JSON", "json::object json::parser::parseValue()");
-  return object();
+  return json::object();
 }
 
 json::object json::parser::parseBooleanNullOrUndefined() {
@@ -58,17 +58,17 @@ json::object json::parser::parseBooleanNullOrUndefined() {
   }
 
   if (keyword == "true")
-    return object(true);
+    return json::object(true);
   else if (keyword == "false")
-    return object(false);
+    return json::object(false);
   else if (keyword == "null")
-    return object(nullptr);
+    return json::object(nullptr);
   else if (keyword == "undefined")
-    return object();
+    return json::object();
 
   logger::error("Invalid JSON",
                 "json::object json::parser::parseBooleanNullOrUndefined()");
-  return object();
+  return json::object();
 }
 json::object json::parser::parseNumber() {
   std::string number = "";
@@ -87,9 +87,9 @@ json::object json::parser::parseNumber() {
   }
 
   if (isInt)
-    return object(std::stoll(number));
+    return json::object(std::stoll(number));
   else
-    return object(std::stod(number));
+    return json::object(std::stod(number));
 }
 json::object json::parser::parseString() {
   std::string value = "";
@@ -111,11 +111,11 @@ json::object json::parser::parseString() {
   }
 
   this->index++;
-  return object(value);
+  return json::object(value);
 }
 json::object json::parser::parseArray() {
   std::vector<object> emptyVector;
-  object result(emptyVector);
+  json::object result(emptyVector);
   this->index++;
   char currChar;
 
@@ -131,14 +131,15 @@ json::object json::parser::parseArray() {
       continue;
     }
 
-    result.push_back(this->parseValue());
+    json::object value = this->parseValue();
+    result.push_back(value);
   }
 
   return result;
 }
 json::object json::parser::parseMap() {
-  std::map<std::string, object> emptyMap;
-  object result(emptyMap);
+  std::map<std::string, json::object> emptyMap;
+  json::object result(emptyMap);
   this->index++;
   char currChar;
 

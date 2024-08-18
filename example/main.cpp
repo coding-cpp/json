@@ -1,38 +1,45 @@
 // Includes required
-#include <json/object.h>
 #include <json/parse.h>
 
 // Using namespace
 using namespace json;
 
-int main(int argc, char **argv) {
+int main(int argc, char *argv[]) {
   object person;
+  person["name"] = "Adit";
   person["age"] = 21;
-  person.insert("name", "Adit");
-  person["height"] = 186.5;
+  person.insert("height", 186.5);
   person["alive"] = true;
+  person["links"]["github"] = "https://github.com/jadit19";
+  person["links"]["linkedin"] = "https://www.linkedin.com/in/jadit19/";
 
-  object languages;
-  languages.push_back("German");
-  languages.push_back("English");
-  languages[0] = "Hindi";
+  object college;
+  college["name"] = "Indian Institute of Technology Kanpur";
+  college["graduation"] = 2024;
+  college["major"] = "Electrical Engineering";
+  college["minors"].push_back("Operating Systems");
+  college["minors"].push_back("Machine Learning");
+  college["minors"].resize(3);
+  college["minors"][2] = "English Literature";
+  person["college"] = college;
 
-  person["languages"] = languages;
-  person["languages"].push_back("French");
-  logger::info(person.dumps(2));
+  person["languages"].resize(1);
+  person["languages"][0] = "English";
+  person["languages"].push_back("Hindi");
+  person["languages"].push_back("Spanish");
+  person["languages"][2] = "French";
+
+  parser parser;
+  std::string data = person.dumps();
+  object duplicate = parser.loads(data);
+
+  logger::info(duplicate.dumps(2));
 
   std::string name = person["name"];
-  logger::info(name);
-
   int age = person["age"];
-  logger::info(std::to_string(age));
-
   bool alive = person["alive"];
-  logger::info(alive ? "Alive" : "Dead");
-
-  parser jsonParser;
-  object obj = jsonParser.loads(person.dumps(2));
-  logger::success(obj.dumps(2));
+  logger::info(name + " is " + std::to_string(age) + " years old and is " +
+               (alive ? "alive" : "dead") + ".");
 
   return EXIT_SUCCESS;
 }

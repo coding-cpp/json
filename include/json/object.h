@@ -15,13 +15,13 @@ namespace json {
 
 class object {
 private:
-  using value =
+  using Value =
       std::variant<std::nullptr_t, bool, long long int, double, std::string>;
-  using all_values =
-      std::variant<std::nullptr_t, bool, long long int, double, std::string,
-                   std::vector<object>, std::map<std::string, object>>;
+  using AllValues = std::variant<std::nullptr_t, bool, long long int, double,
+                                 std::string, std::vector<json::object>,
+                                 std::map<std::string, json::object>>;
 
-  type _type;
+  json::TYPE type;
 
   void clearVariant();
 
@@ -34,58 +34,63 @@ private:
   void assertIsMap();
 
 protected:
-  value _value;
-  std::vector<object> _array;
-  std::map<std::string, object> _map;
+  json::object::Value value;
+  std::vector<json::object> array;
+  std::map<std::string, json::object> map;
 
 public:
+  // Constructors
   object();
-  object(all_values data);
+  object(json::object::AllValues data);
+  object(const char *data);
   ~object();
 
-  // Equal to operators
-  object &operator=(std::nullptr_t data);
-  object &operator=(bool data);
-  object &operator=(int data);
-  object &operator=(long long int data);
-  object &operator=(double data);
-  object &operator=(const char *data);
-  object &operator=(std::vector<object> data);
-  object &operator=(std::map<std::string, object> data);
+  // Assignment operators
+  json::object &operator=(std::nullptr_t data);
+  json::object &operator=(bool data);
+  json::object &operator=(int data);
+  json::object &operator=(long long int data);
+  json::object &operator=(double data);
+  json::object &operator=(const char *data);
+  json::object &operator=(const std::string &data);
+  json::object &operator=(std::vector<json::object> data);
+  json::object &operator=(std::map<std::string, json::object> data);
 
-  // Array operators
-  object &operator[](const size_t index);
-  const object &operator[](const size_t index) const;
+  // Array operations
+  json::object &operator[](const size_t index);
+  json::object &operator[](const int index);
+  void push_back(const json::object &data);
   void pop_back();
-  void push_back(all_values data);
-  void push_back(object data);
-  void reserve(size_t size);
-  void resize(size_t size);
+  void reserve(const size_t size);
+  void resize(const size_t size);
   void shrink_to_fit();
 
-  // Map operators
-  object &operator[](const std::string &key);
-  const object &operator[](const std::string &key) const;
-  void erase(const std::string key);
+  // Map operations
+  json::object &operator[](const char *key);
+  json::object &operator[](const std::string &key);
   std::map<std::string, json::object>::iterator find(const std::string key);
-  void insert(const std::string key, all_values data);
+  std::map<std::string, json::object>::iterator begin();
+  std::map<std::string, json::object>::iterator end();
+  void insert(const std::string key, json::object::AllValues value);
 
   // Array and Map operators
-  size_t size();
   void clear();
+  size_t size() const;
 
-  // object operators
+  // Object operators
   void reset();
-  void dump(std::string path, size_t indent = 0);
-  std::string dumps(size_t indent = 0, size_t baseIndent = 0);
+  void dump(std::string filename, size_t indent = 0) const;
+  std::string dumps(size_t indent = 0, size_t baseIndent = 0) const;
+
+  // Conversion Operators
+  operator std::string() const;
+  operator int() const;
+  operator long long int() const;
+  operator double() const;
+  operator bool() const;
 
   // Output functions
-  friend std::ostream &operator<<(std::ostream &os, object &obj);
-
-  operator std::nullptr_t() const;
-  // operator bool() const;
-  operator double() const;
-  operator std::string() const;
+  friend std::ostream &operator<<(std::ostream &os, const json::object &obj);
 };
 
 } // namespace json
