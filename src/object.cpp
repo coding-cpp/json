@@ -184,15 +184,26 @@ void json::object::reset() {
 }
 void json::object::dump(std::string filename, size_t indent) const {
   std::ofstream file;
-  file.open(filename);
-  if (!file.is_open()) {
+
+  try {
+    file.open(filename);
+    if (!file.is_open()) {
+      logger::error(
+          "Failed to open file " + filename,
+          "void json::object::dump(std::string filename, size_t indent)");
+    }
+
+    file << this->dumps(indent);
+    file.close();
+  } catch (const std::exception &e) {
     logger::error(
-        "Failed to open file " + filename,
+        "Error encountered for: " + filename + " - " + std::string(e.what()),
+        "void json::object::dump(std::string filename, size_t indent)");
+  } catch (...) {
+    logger::error(
+        "An unknown error occurred for file: " + filename,
         "void json::object::dump(std::string filename, size_t indent)");
   }
-
-  file << this->dumps(indent);
-  file.close();
   return;
 }
 std::string json::object::dumps(size_t indent, size_t baseIndent) const {

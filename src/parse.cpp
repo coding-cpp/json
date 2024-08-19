@@ -7,14 +7,23 @@ json::parser::parser(std::string data) : input(data) { return; }
 json::parser::~parser() { return; }
 
 json::object json::parser::load(std::string path) {
-  std::ifstream file(path);
-  if (!file.is_open())
-    logger::error("File not found " + path,
-                  "json::object json::parser::load(std::string path)");
-
   std::stringstream buffer;
-  buffer << file.rdbuf();
-  file.close();
+
+  try {
+    std::ifstream file(path);
+    if (!file.is_open())
+      logger::error("File not found " + path,
+                    "json::object json::parser::load(std::string path)");
+
+    buffer << file.rdbuf();
+    file.close();
+  } catch (std::exception &e) {
+    logger::error("Error reading file: " + path + " - " + e.what(),
+                  "json::object json::parser::load(std::string path)");
+  } catch (...) {
+    logger::error("Error reading file " + path,
+                  "json::object json::parser::load(std::string path)");
+  }
 
   return this->loads(buffer.str());
 }
