@@ -1,12 +1,12 @@
 #include <json/parse.h>
 
-json::parser::parser() { return; }
+json::parser::parser() noexcept(true) { return; }
 
-json::parser::parser(std::string data) : input(data) { return; }
+json::parser::parser(std::string data) noexcept(false) : input(data) { return; }
 
-json::parser::~parser() { return; }
+json::parser::~parser() noexcept(true) { return; }
 
-json::object json::parser::load(std::string path) {
+json::object json::parser::load(std::string path) noexcept(false) {
   std::stringstream buffer;
 
   try {
@@ -27,7 +27,7 @@ json::object json::parser::load(std::string path) {
 
   return this->loads(buffer.str());
 }
-json::object json::parser::loads(std::string data) {
+json::object json::parser::loads(std::string data) noexcept(false) {
   this->input = data;
   this->index = 0;
   this->output.reset();
@@ -36,7 +36,7 @@ json::object json::parser::loads(std::string data) {
   return this->output;
 }
 
-json::object json::parser::parseValue() {
+json::object json::parser::parseValue() noexcept(false) {
   this->skipWhitespace();
   char firstChar = this->getCurrChar();
 
@@ -56,7 +56,7 @@ json::object json::parser::parseValue() {
   return json::object();
 }
 
-json::object json::parser::parseBooleanNullOrUndefined() {
+json::object json::parser::parseBooleanNullOrUndefined() noexcept(false) {
   std::string keyword = "";
   char currChar = this->getCurrChar();
 
@@ -79,7 +79,7 @@ json::object json::parser::parseBooleanNullOrUndefined() {
                 "json::object json::parser::parseBooleanNullOrUndefined()");
   return json::object();
 }
-json::object json::parser::parseNumber() {
+json::object json::parser::parseNumber() noexcept(true) {
   std::string number = "";
   char currChar = this->getCurrChar();
   bool isInt = true;
@@ -100,7 +100,7 @@ json::object json::parser::parseNumber() {
   else
     return json::object(std::stod(number));
 }
-json::object json::parser::parseString() {
+json::object json::parser::parseString() noexcept(true) {
   std::string value = "";
   this->index++;
   char currChar = this->getCurrChar();
@@ -122,7 +122,7 @@ json::object json::parser::parseString() {
   this->index++;
   return json::object(value);
 }
-json::object json::parser::parseArray() {
+json::object json::parser::parseArray() noexcept(false) {
   std::vector<object> emptyVector;
   json::object result(emptyVector);
   this->index++;
@@ -146,7 +146,7 @@ json::object json::parser::parseArray() {
 
   return result;
 }
-json::object json::parser::parseMap() {
+json::object json::parser::parseMap() noexcept(false) {
   std::map<std::string, json::object> emptyMap;
   json::object result(emptyMap);
   this->index++;
@@ -199,13 +199,13 @@ json::object json::parser::parseMap() {
   return result;
 }
 
-void json::parser::skipWhitespace() {
+void json::parser::skipWhitespace() noexcept(true) {
   while (std::isspace(this->input[this->index])) {
     this->index++;
   }
   return;
 }
-bool json::parser::shouldStringBeEscaped() {
+bool json::parser::shouldStringBeEscaped() noexcept(true) {
   int backslashes = 0;
   for (int i = this->index - 1; i >= 0; i--) {
     if (this->input[i] == '\\') {
@@ -219,13 +219,13 @@ bool json::parser::shouldStringBeEscaped() {
   }
   return false;
 }
-char json::parser::getPrevChar() {
+char json::parser::getPrevChar() noexcept(true) {
   if (this->index > 0) {
     return this->input[this->index - 1];
   }
   return '\0';
 }
-char json::parser::getCurrChar() {
+char json::parser::getCurrChar() noexcept(true) {
   if (this->index < this->input.size()) {
     return this->input[this->index];
   }

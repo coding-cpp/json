@@ -16,25 +16,25 @@ private:
 
   size_t index;
 
-  object parseValue();
-  object parseBooleanNullOrUndefined();
-  object parseNumber();
-  object parseString();
-  object parseArray();
-  object parseMap();
+  object parseValue() noexcept(false);
+  object parseBooleanNullOrUndefined() noexcept(false);
+  object parseNumber() noexcept(true);
+  object parseString() noexcept(true);
+  object parseArray() noexcept(false);
+  object parseMap() noexcept(false);
 
-  void skipWhitespace();
-  bool shouldStringBeEscaped();
-  char getPrevChar();
-  char getCurrChar();
+  void skipWhitespace() noexcept(true);
+  bool shouldStringBeEscaped() noexcept(true);
+  char getPrevChar() noexcept(true);
+  char getCurrChar() noexcept(true);
 
 public:
-  parser();
-  parser(std::string data);
-  ~parser();
+  parser() noexcept(true);
+  parser(std::string data) noexcept(false);
+  ~parser() noexcept(true);
 
-  object load(std::string path);
-  object loads(std::string data);
+  object load(std::string path) noexcept(false);
+  object loads(std::string data) noexcept(false);
 };
 
 } // namespace json

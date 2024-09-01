@@ -3,8 +3,11 @@
 #include <json/object.h>
 
 // Constructors
-json::object::object() : type(json::TYPE::UNDEFINED), value(nullptr) { return; }
-json::object::object(json::object::AllValues data)
+json::object::object() noexcept(true)
+    : type(json::TYPE::UNDEFINED), value(nullptr) {
+  return;
+}
+json::object::object(json::object::AllValues data) noexcept(false)
     : type(json::TYPE::UNDEFINED), value(nullptr) {
   this->reset();
   switch (data.index()) {
@@ -43,113 +46,116 @@ json::object::object(json::object::AllValues data)
   }
   return;
 }
-json::object::object(const char *data)
+json::object::object(const char *data) noexcept(false)
     : type(json::TYPE::UNDEFINED), value(nullptr) {
   *this = std::string(data);
   return;
 }
-json::object::~object() {
+json::object::~object() noexcept(true) {
   this->clearVariant();
   return;
 }
 
 // Assignment operators
-json::object &json::object::operator=(std::nullptr_t data) {
+json::object &json::object::operator=(std::nullptr_t data) noexcept(true) {
   return *this = json::object(data);
 }
-json::object &json::object::operator=(bool data) {
+json::object &json::object::operator=(bool data) noexcept(true) {
   return *this = json::object(data);
 }
-json::object &json::object::operator=(int data) {
+json::object &json::object::operator=(int data) noexcept(true) {
   return *this = json::object(data);
 }
-json::object &json::object::operator=(long long int data) {
+json::object &json::object::operator=(long long int data) noexcept(true) {
   return *this = json::object(data);
 }
-json::object &json::object::operator=(double data) {
+json::object &json::object::operator=(double data) noexcept(true) {
   return *this = json::object(data);
 }
-json::object &json::object::operator=(const char *data) {
+json::object &json::object::operator=(const char *data) noexcept(true) {
   return *this = json::object(data);
 }
-json::object &json::object::operator=(const std::string &data) {
-  return *this = json::object(data);
-}
-json::object &json::object::operator=(std::vector<json::object> data) {
+json::object &json::object::operator=(const std::string &data) noexcept(true) {
   return *this = json::object(data);
 }
 json::object &
-json::object::operator=(std::map<std::string, json::object> data) {
+json::object::operator=(std::vector<json::object> data) noexcept(true) {
+  return *this = json::object(data);
+}
+json::object &json::object::operator=(
+    std::map<std::string, json::object> data) noexcept(true) {
   return *this = json::object(data);
 }
 
 // Array operations
-json::object &json::object::operator[](size_t index) {
+json::object &json::object::operator[](size_t index) noexcept(false) {
   this->assertIsArray();
   if (index >= this->array.size()) {
     this->array.resize(index + 1);
   }
   return this->array[index];
 }
-json::object &json::object::operator[](int index) {
+json::object &json::object::operator[](int index) noexcept(false) {
   return this->operator[]((size_t)index);
 }
-void json::object::push_back(const json::object &data) {
+void json::object::push_back(const json::object &data) noexcept(false) {
   this->assertIsArray();
   this->array.push_back(data);
   return;
 }
-void json::object::pop_back() {
+void json::object::pop_back() noexcept(false) {
   this->assertIsArray();
   this->array.pop_back();
   return;
 }
-void json::object::reserve(size_t size) {
+void json::object::reserve(size_t size) noexcept(false) {
   this->assertIsArray();
   this->array.reserve(size);
   return;
 }
-void json::object::resize(size_t size) {
+void json::object::resize(size_t size) noexcept(false) {
   this->assertIsArray();
   this->array.resize(size);
   return;
 }
-void json::object::shrink_to_fit() {
+void json::object::shrink_to_fit() noexcept(false) {
   this->assertIsArray();
   this->array.shrink_to_fit();
   return;
 }
 
 // Map operations
-json::object &json::object::operator[](const char *key) {
+json::object &json::object::operator[](const char *key) noexcept(false) {
   return this->operator[](std::string(key));
 }
-json::object &json::object::operator[](const std::string &key) {
+json::object &json::object::operator[](const std::string &key) noexcept(false) {
   this->assertIsMap();
   return this->map[key];
 }
 std::map<std::string, json::object>::iterator
-json::object::find(const std::string key) {
+json::object::find(const std::string key) noexcept(false) {
   this->assertIsMap();
   return this->map.find(key);
 }
-std::map<std::string, json::object>::iterator json::object::begin() {
+std::map<std::string, json::object>::iterator
+json::object::begin() noexcept(false) {
   this->assertIsMap();
   return this->map.begin();
 }
-std::map<std::string, json::object>::iterator json::object::end() {
+std::map<std::string, json::object>::iterator
+json::object::end() noexcept(false) {
   this->assertIsMap();
   return this->map.end();
 }
 void json::object::insert(const std::string key,
-                          json::object::AllValues value) {
+                          json::object::AllValues value) noexcept(false) {
   this->assertIsMap();
   this->map[key] = json::object(value);
   return;
 }
 
 // Array and Map operators
-void json::object::clear() {
+void json::object::clear() noexcept(false) {
   if (this->type == json::TYPE::ARRAY) {
     this->clearArray();
   } else if (this->type == json::TYPE::OBJECT) {
@@ -160,7 +166,7 @@ void json::object::clear() {
   }
   return;
 }
-size_t json::object::size() const {
+size_t json::object::size() const noexcept(false) {
   if (this->type == json::TYPE::ARRAY) {
     return this->array.size();
   } else if (this->type == json::TYPE::OBJECT) {
@@ -175,14 +181,15 @@ size_t json::object::size() const {
 }
 
 // Object operators
-void json::object::reset() {
+void json::object::reset() noexcept(true) {
   this->clearVariant();
   this->clearArray();
   this->clearMap();
   this->type = json::TYPE::UNDEFINED;
   return;
 }
-void json::object::dump(std::string filename, size_t indent) const {
+void json::object::dump(std::string filename, size_t indent) const
+    noexcept(false) {
   std::ofstream file;
 
   try {
@@ -206,7 +213,8 @@ void json::object::dump(std::string filename, size_t indent) const {
   }
   return;
 }
-std::string json::object::dumps(size_t indent, size_t baseIndent) const {
+std::string json::object::dumps(size_t indent, size_t baseIndent) const
+    noexcept(false) {
   std::string result = "";
   int newBaseIndent = indent + baseIndent;
   switch (this->type) {
@@ -276,7 +284,7 @@ std::string json::object::dumps(size_t indent, size_t baseIndent) const {
 }
 
 // Conversion Operators
-json::object::operator std::string() const {
+json::object::operator std::string() const noexcept(false) {
   if (this->type == json::TYPE::STRING) {
     return std::get<std::string>(this->value);
   } else {
@@ -285,7 +293,7 @@ json::object::operator std::string() const {
   }
   return "";
 }
-json::object::operator int() const {
+json::object::operator int() const noexcept(false) {
   if (this->type == json::TYPE::INTEGER) {
     return (int)std::get<long long int>(this->value);
   } else {
@@ -294,7 +302,7 @@ json::object::operator int() const {
   }
   return 0;
 }
-json::object::operator long long int() const {
+json::object::operator long long int() const noexcept(false) {
   if (this->type == json::TYPE::INTEGER) {
     return (long long int)std::get<long long int>(this->value);
   } else {
@@ -303,7 +311,7 @@ json::object::operator long long int() const {
   }
   return 0;
 }
-json::object::operator double() const {
+json::object::operator double() const noexcept(false) {
   if (this->type == json::TYPE::NUMBER) {
     return std::get<double>(this->value);
   } else {
@@ -312,7 +320,7 @@ json::object::operator double() const {
   }
   return 0.0;
 }
-json::object::operator bool() const {
+json::object::operator bool() const noexcept(false) {
   if (this->type == json::TYPE::BOOLEAN) {
     return std::get<bool>(this->value);
   } else {
@@ -323,16 +331,16 @@ json::object::operator bool() const {
 }
 
 // Private methods
-void json::object::clearVariant() {
+void json::object::clearVariant() noexcept(true) {
   this->value = nullptr;
   return;
 }
 
-void json::object::clearArray() {
+void json::object::clearArray() noexcept(true) {
   this->array.clear();
   return;
 }
-void json::object::setArrayIfUndefined() {
+void json::object::setArrayIfUndefined() noexcept(true) {
   if (this->type == json::TYPE::UNDEFINED) {
     this->clearVariant();
     this->clearMap();
@@ -349,11 +357,11 @@ void json::object::assertIsArray() noexcept(false) {
   return;
 }
 
-void json::object::clearMap() {
+void json::object::clearMap() noexcept(true) {
   this->map.clear();
   return;
 }
-void json::object::setMapIfUndefined() {
+void json::object::setMapIfUndefined() noexcept(true) {
   if (this->type == json::TYPE::UNDEFINED) {
     this->clearVariant();
     this->clearArray();
@@ -373,7 +381,7 @@ void json::object::assertIsMap() noexcept(false) {
 // Friend functions
 namespace json {
 
-std::ostream &operator<<(std::ostream &os, object &obj) {
+std::ostream &operator<<(std::ostream &os, object &obj) noexcept(true) {
   os << obj.dumps(2);
   return os;
 }
